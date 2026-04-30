@@ -1,0 +1,12 @@
+{
+  "extends": "@total-typescript/tsconfig/bun/no-dom/library",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
+}
