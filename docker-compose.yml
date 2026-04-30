@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    ports: ["127.0.0.1:5432:5432"]
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_DB: brain
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d brain"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["bun", "run", "src/api/index.ts"]
+    ports: ["127.0.0.1:8787:8787"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://admin@postgres:5432/brain
+      LIGHTRAG_URL: http://lightrag:8000
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: admin
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8787/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  mcp:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["bun", "run", "src/mcp/index.ts"]
+    ports: ["127.0.0.1:3100:3100"]
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: admin
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+  worker:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["bun", "run", "src/worker/index.ts"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://admin@postgres:5432/brain
+      LIGHTRAG_URL: http://lightrag:8000
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: admin
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+
+  lightrag:
+    build: { context: ./docker/lightrag, dockerfile: Dockerfile }
+    ports: ["127.0.0.1:8000:8000"]
+    env_file: .env
+    volumes:
+      - lightragdata:/data
+    restart: unless-stopped
+
+  db-setup:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    profiles: ["setup"]
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["sh", "-c", "bun run db:push && bun run db:setup-vectors"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://admin@postgres:5432/brain
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: admin
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  lightragdata:
