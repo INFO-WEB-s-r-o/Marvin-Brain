@@ -9,14 +9,17 @@ import { healthRouter } from "./routes/health"
 import { buildThoughtsRouter } from "./routes/thoughts"
 import { buildFactsRouter } from "./routes/facts"
 import { buildRecallRouter } from "./routes/recall"
+import { buildAdminRouter } from "./routes/admin"
 import type { ThoughtsService } from "~/services/thoughts"
 import type { FactsService } from "~/services/facts"
 import type { RecallService } from "~/services/recall"
+import type { getDb } from "~/db/client"
 
 export interface BuildAppOptions {
   apiKey: string
   logLevel: "debug" | "info" | "warn" | "error"
   halfLifeDays?: number
+  db?: ReturnType<typeof getDb>
   services?: {
     thoughts?: ThoughtsService
     facts?: FactsService
@@ -37,6 +40,9 @@ export function buildApp(opts: BuildAppOptions) {
   // everything under /v1 requires bearer
   const v1 = new Hono()
   v1.use("*", bearerAuth({ apiKey: opts.apiKey }))
+  if (opts.db) {
+    v1.route("/", buildAdminRouter(opts.db))
+  }
   if (opts.services?.thoughts) {
     v1.route("/", buildThoughtsRouter(opts.services.thoughts))
   }
