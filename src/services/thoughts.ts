@@ -42,6 +42,7 @@ export interface ThoughtsService {
   record: (args: RecordThoughtArgs) => Promise<RecordResult>
   getById: (id: string) => Promise<ThoughtRow | null>
   recent: (limit: number) => Promise<ThoughtRow[]>
+  forget: (id: string, reason: string) => Promise<{ ok: true } | null>
 }
 
 function rowToThought(row: typeof thoughts.$inferSelect): ThoughtRow {
@@ -160,6 +161,14 @@ export function createThoughtsService(opts: ThoughtsServiceOptions): ThoughtsSer
         .limit(1)
       if (!rows[0]) return null
       return rowToThought(rows[0])
+    },
+    async forget(id, reason) {
+      const updated = await opts.db
+        .update(thoughts)
+        .set({ isForgotten: true, forgetReason: reason, updatedAt: new Date() })
+        .where(eq(thoughts.id, id))
+        .returning({ id: thoughts.id })
+      return updated[0] ? { ok: true as const } : null
     },
     async recent(limit) {
       const rows = await opts.db

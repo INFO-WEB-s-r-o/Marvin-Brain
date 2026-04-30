@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { RecordThoughtReqSchema } from "~/lib/validation"
+import { ForgetReqSchema, RecordThoughtReqSchema } from "~/lib/validation"
 import type { ThoughtsService } from "~/services/thoughts"
 
 export function buildThoughtsRouter(svc: ThoughtsService) {
@@ -16,6 +16,15 @@ export function buildThoughtsRouter(svc: ThoughtsService) {
     const t = await svc.getById(c.req.param("id"))
     if (!t) throw new HTTPException(404, { message: "not_found" })
     return c.json(t)
+  })
+
+  r.post("/thoughts/:id/forget", async (c) => {
+    const json = await c.req.json().catch(() => null)
+    const parsed = ForgetReqSchema.safeParse(json)
+    if (!parsed.success) throw new HTTPException(400, { message: "reason required" })
+    const result = await svc.forget(c.req.param("id"), parsed.data.reason)
+    if (!result) throw new HTTPException(404, { message: "not_found" })
+    return c.json({ ok: true })
   })
 
   r.post("/thoughts", async (c) => {
