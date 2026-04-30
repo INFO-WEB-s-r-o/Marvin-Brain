@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { eq, sql as raw } from "drizzle-orm"
 import { ulid } from "ulid"
 import { facts, factSources } from "~/db/schema"
 import type { getDb } from "~/db/client"
@@ -47,6 +47,7 @@ export function createFactsService(deps: {
     async record(args) {
       const id = ulid()
       const emb = await deps.embedder.embed(args.statement)
+      const embVec = `[${emb.join(",")}]`
       const inserted = await deps.db
         .insert(facts)
         .values({
@@ -60,6 +61,10 @@ export function createFactsService(deps: {
           confidence: args.confidence,
         })
         .returning()
+      // populate the pgvector column
+      await deps.db.execute(raw`
+        UPDATE memory_entries SET embedding_vec = ${embVec}::vector WHERE id = ${id}
+      `)
       // mark previous fact non-latest if updating
       if (args.parentFactId) {
         await deps.db

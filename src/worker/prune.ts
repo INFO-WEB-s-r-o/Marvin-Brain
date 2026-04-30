@@ -1,4 +1,4 @@
-import { desc, eq, lt, ne } from "drizzle-orm"
+import { desc, eq, lt, ne, or } from "drizzle-orm"
 import { thoughts, consolidationRuns } from "~/db/schema"
 import type { getDb } from "~/db/client"
 import type { LightRAGClient } from "~/lib/lightrag"
@@ -38,7 +38,7 @@ export async function prune(opts: PruneOptions): Promise<PruneResult> {
 
   const rows = await opts.db
     .delete(thoughts)
-    .where(lt(thoughts.lastMentionedAt, cutoff))
+    .where(or(lt(thoughts.lastMentionedAt, cutoff), eq(thoughts.isForgotten, true)))
     .returning({ id: thoughts.id })
 
   if (rows.length > 0) {

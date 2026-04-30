@@ -107,6 +107,15 @@ export async function consolidate(opts: ConsolidateOptions): Promise<Consolidate
         rootFactId: factId,
         confidence: llm.confidence,
       })
+      // mark superseded facts non-latest
+      if (llm.supersedes_facts && llm.supersedes_facts.length > 0) {
+        for (const supersededId of llm.supersedes_facts) {
+          await opts.db
+            .update(facts)
+            .set({ isLatest: false, parentFactId: factId, updatedAt: new Date() })
+            .where(eq(facts.id, supersededId))
+        }
+      }
       // mark thoughts as consolidated (additive, not forgotten)
       for (const t of cluster) {
         await opts.db
