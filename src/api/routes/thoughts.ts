@@ -6,6 +6,18 @@ import type { ThoughtsService } from "~/services/thoughts"
 export function buildThoughtsRouter(svc: ThoughtsService) {
   const r = new Hono()
 
+  r.get("/thoughts/recent", async (c) => {
+    const limit = Math.min(100, Math.max(1, Number(c.req.query("limit") ?? 20)))
+    const list = await svc.recent(limit)
+    return c.json({ thoughts: list })
+  })
+
+  r.get("/thoughts/:id", async (c) => {
+    const t = await svc.getById(c.req.param("id"))
+    if (!t) throw new HTTPException(404, { message: "not_found" })
+    return c.json(t)
+  })
+
   r.post("/thoughts", async (c) => {
     const json = await c.req.json().catch(() => null)
     const parsed = RecordThoughtReqSchema.safeParse(json)

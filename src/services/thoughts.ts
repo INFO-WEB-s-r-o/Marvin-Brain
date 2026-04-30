@@ -20,6 +20,17 @@ export interface RecordResult {
   similarityScore?: number
 }
 
+export interface ThoughtRow {
+  id: string
+  content: string
+  weight: number
+  mentionCount: number
+  lastMentionedAt: Date
+  containerTag: string | null
+  metadata: Record<string, unknown> | null
+  createdAt: Date
+}
+
 export interface ThoughtsServiceOptions {
   db: ReturnType<typeof getDb>
   embedder: Embedder
@@ -29,6 +40,21 @@ export interface ThoughtsServiceOptions {
 
 export interface ThoughtsService {
   record: (args: RecordThoughtArgs) => Promise<RecordResult>
+  getById: (id: string) => Promise<ThoughtRow | null>
+  recent: (limit: number) => Promise<ThoughtRow[]>
+}
+
+function rowToThought(row: typeof thoughts.$inferSelect): ThoughtRow {
+  return {
+    id: row.id,
+    content: row.content,
+    weight: row.weight,
+    mentionCount: row.mentionCount,
+    lastMentionedAt: row.lastMentionedAt,
+    containerTag: row.containerTag ?? null,
+    metadata: (row.metadata as Record<string, unknown> | null) ?? null,
+    createdAt: row.createdAt,
+  }
 }
 
 function vectorLiteral(vec: number[]): string {
@@ -125,6 +151,24 @@ export function createThoughtsService(opts: ThoughtsServiceOptions): ThoughtsSer
       void opts.lightrag.index(id, normalized)
 
       return { id, kind: "new", weight: 0, mentionCount: 1 }
+    },
+    async getById(id) {
+      const rows = await opts.db
+        .select()
+        .from(thoughts)
+        .where(and(eq(thoughts.id, id), eq(thoughts.isForgotten, false)))
+        .limit(1)
+      if (!rows[0]) return null
+      return rowToThought(rows[0])
+    },
+    async recent(limit) {
+      const rows = await opts.db
+        .select()
+        .from(thoughts)
+        .where(eq(thoughts.isForgotten, false))
+        .orderBy(raw`${thoughts.lastMentionedAt} DESC`)
+        .limit(limit)
+      return rows.map(rowToThought)
     },
   }
 }
