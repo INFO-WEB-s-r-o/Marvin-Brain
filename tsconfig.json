@@ -2,7 +2,7 @@
   "extends": "@total-typescript/tsconfig/bundler/no-dom/library",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "noEmit": true,
     "baseUrl": "./",
     "paths": {
       "~/*": ["./src/*"]
