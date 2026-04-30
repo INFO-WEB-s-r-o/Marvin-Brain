@@ -12,6 +12,8 @@ export type RecordThoughtReq = z.infer<typeof RecordThoughtReqSchema>
 export const RecordFactReqSchema = z.object({
   statement: z.string().min(1).max(50_000),
   sources: z.array(z.string()).max(50).optional(),
+  parent_fact_id: z.string().optional(),
+  confidence: z.number().min(0).max(1).optional(),
 })
 export type RecordFactReq = z.infer<typeof RecordFactReqSchema>
 
