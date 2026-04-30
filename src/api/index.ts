@@ -7,13 +7,16 @@ import { errorHandler } from "./middleware/error"
 import { requestLogger } from "./middleware/logger"
 import { healthRouter } from "./routes/health"
 import { buildThoughtsRouter } from "./routes/thoughts"
+import { buildFactsRouter } from "./routes/facts"
 import type { ThoughtsService } from "~/services/thoughts"
+import type { FactsService } from "~/services/facts"
 
 export interface BuildAppOptions {
   apiKey: string
   logLevel: "debug" | "info" | "warn" | "error"
   services?: {
     thoughts?: ThoughtsService
+    facts?: FactsService
   }
 }
 
@@ -32,6 +35,9 @@ export function buildApp(opts: BuildAppOptions) {
   v1.use("*", bearerAuth({ apiKey: opts.apiKey }))
   if (opts.services?.thoughts) {
     v1.route("/", buildThoughtsRouter(opts.services.thoughts))
+  }
+  if (opts.services?.facts) {
+    v1.route("/", buildFactsRouter(opts.services.facts))
   }
   app.route("/v1", v1)
 
