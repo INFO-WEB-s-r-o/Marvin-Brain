@@ -8,15 +8,19 @@ import { requestLogger } from "./middleware/logger"
 import { healthRouter } from "./routes/health"
 import { buildThoughtsRouter } from "./routes/thoughts"
 import { buildFactsRouter } from "./routes/facts"
+import { buildRecallRouter } from "./routes/recall"
 import type { ThoughtsService } from "~/services/thoughts"
 import type { FactsService } from "~/services/facts"
+import type { RecallService } from "~/services/recall"
 
 export interface BuildAppOptions {
   apiKey: string
   logLevel: "debug" | "info" | "warn" | "error"
+  halfLifeDays?: number
   services?: {
     thoughts?: ThoughtsService
     facts?: FactsService
+    recall?: RecallService
   }
 }
 
@@ -38,6 +42,9 @@ export function buildApp(opts: BuildAppOptions) {
   }
   if (opts.services?.facts) {
     v1.route("/", buildFactsRouter(opts.services.facts))
+  }
+  if (opts.services?.recall) {
+    v1.route("/", buildRecallRouter(opts.services.recall, opts.halfLifeDays ?? 30))
   }
   app.route("/v1", v1)
 
