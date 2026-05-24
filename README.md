@@ -14,8 +14,8 @@ thoughts into durable facts and prunes thoughts that haven't been mentioned in 1
 ## Quickstart
 
 ```bash
-git clone https://github.com/<you>/marvin-brain
-cd marvin-brain
+git clone https://github.com/INFO-WEB-s-r-o/Marvin-Brain
+cd Marvin-Brain
 cp .env.example .env
 # edit .env: set BRAIN_API_KEY (32+ chars) and OPENAI_API_KEY
 docker compose --profile setup up db-setup --abort-on-container-exit
@@ -38,6 +38,30 @@ docker compose up -d postgres api mcp worker lightrag
 ```
 
 All services bind to `127.0.0.1` only. Bearer-key auth on `/v1`.
+
+### MCP transports
+
+Two ways for a client to reach the brain over MCP. Both end at the same API.
+
+```text
+HTTP (default — the `mcp` service):
+
+  client ── streamable HTTP ──► 127.0.0.1:3100 (mcp) ── HTTP ──► 127.0.0.1:8787 (api)
+
+
+stdio, native (src/mcp/stdio.ts) — talks straight to the API, no :3100 hop:
+
+  client ── stdio ──► stdio.ts ──────────────── HTTP ──► 127.0.0.1:8787 (api)
+
+
+stdio, proxy (src/mcp/stdio-proxy.mjs) — bridges stdio to the HTTP mcp server:
+
+  client ── stdio ──► stdio-proxy.mjs ── HTTP ──► 127.0.0.1:3100 (mcp) ──► 127.0.0.1:8787 (api)
+```
+
+Use **HTTP** for shared/remote clients, the **native stdio** server for a single
+local client (only the API needs to run), and the **proxy** when you already expose
+MCP over HTTP and just want a stdio shim in front of it.
 
 ## Configuration
 
@@ -73,8 +97,11 @@ All `/v1` routes require `Authorization: Bearer $BRAIN_API_KEY`.
 
 `record_thought`, `recall`, `record_fact`, `forget_thought`, `forget_fact`,
 `list_recent_thoughts`, `get_thought`, `get_fact`. The MCP server is a thin
-client of the HTTP API and binds to `127.0.0.1:3100`. A stdio adapter ships
-in `src/mcp/stdio-proxy.mjs` for clients that prefer stdio transport.
+client of the HTTP API and binds to `127.0.0.1:3100`. For clients that prefer
+stdio transport there are two options (see [MCP transports](#mcp-transports)):
+a native stdio server in `src/mcp/stdio.ts` (run with `bun run mcp:stdio`) that
+talks directly to the API, and a proxy in `src/mcp/stdio-proxy.mjs` that bridges
+stdio to the HTTP `mcp` server.
 
 ## Development
 
