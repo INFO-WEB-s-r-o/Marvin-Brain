@@ -27,14 +27,14 @@ docker compose up -d postgres api mcp worker lightrag
 
 ```
                               VPS host
-  ┌─────────────────────────────────────────────────────────────┐
-  │   Marvin                                                     │
-  │     │ MCP                                                    │
-  │     ▼                                                        │
-  │   127.0.0.1:3100 ── mcp ──► 127.0.0.1:8787 ── api ──► postgres
-  │                                       │            ── lightrag
-  │   worker (nightly cron) ──► postgres + lightrag             │
-  └─────────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────────┐
+  │   Marvin                                                       │
+  │     │ MCP                                                      │
+  │     ▼                                                          │
+  │   127.0.0.1:3100 ── mcp ──► 127.0.0.1:8787 ── api ──► postgres │
+  │                                       │            ── lightrag │
+  │   worker (nightly cron) ──► postgres + lightrag                │
+  └────────────────────────────────────────────────────────────────┘
 ```
 
 All services bind to `127.0.0.1` only. Bearer-key auth on `/v1`.
@@ -42,6 +42,7 @@ All services bind to `127.0.0.1` only. Bearer-key auth on `/v1`.
 ## Configuration
 
 See `.env.example`. Required:
+
 - `BRAIN_API_KEY` — 32+ char shared secret for the bearer auth.
 - `OPENAI_API_KEY` — for embeddings and consolidation LLM.
 - `DATABASE_URL` — defaults to the compose-internal Postgres.
@@ -53,18 +54,18 @@ Optional tunables: `SIMILARITY_THRESHOLD` (0.92), `CLUSTER_SIM_THRESHOLD` (0.85)
 
 ## API
 
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/health` | liveness probe (no auth) |
-| POST | `/v1/thoughts` | record a thought |
-| GET | `/v1/thoughts/:id` | fetch single thought |
-| GET | `/v1/thoughts/recent` | list recently mentioned |
-| POST | `/v1/thoughts/:id/forget` | mark forgotten |
-| POST | `/v1/facts` | record a fact |
-| GET | `/v1/facts/:id` | fetch single fact |
-| POST | `/v1/facts/:id/forget` | mark forgotten |
-| GET | `/v1/recall` | semantic search across thoughts/facts/documents |
-| POST | `/v1/admin/consolidate-now` | manually trigger consolidation |
+| Method | Path                        | Purpose                                         |
+| ------ | --------------------------- | ----------------------------------------------- |
+| GET    | `/health`                   | liveness probe (no auth)                        |
+| POST   | `/v1/thoughts`              | record a thought                                |
+| GET    | `/v1/thoughts/:id`          | fetch single thought                            |
+| GET    | `/v1/thoughts/recent`       | list recently mentioned                         |
+| POST   | `/v1/thoughts/:id/forget`   | mark forgotten                                  |
+| POST   | `/v1/facts`                 | record a fact                                   |
+| GET    | `/v1/facts/:id`             | fetch single fact                               |
+| POST   | `/v1/facts/:id/forget`      | mark forgotten                                  |
+| GET    | `/v1/recall`                | semantic search across thoughts/facts/documents |
+| POST   | `/v1/admin/consolidate-now` | manually trigger consolidation                  |
 
 All `/v1` routes require `Authorization: Bearer $BRAIN_API_KEY`.
 
