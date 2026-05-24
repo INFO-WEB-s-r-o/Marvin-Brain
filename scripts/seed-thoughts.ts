@@ -4,11 +4,11 @@ import { thoughts } from "~/db/schema"
 import { contentHash } from "~/lib/content"
 
 const SAMPLES = [
-  "I should water the plants this evening",
-  "Marvin needs to renew the SSL cert next month",
-  "The disk is at 73% — keep an eye on it",
-  "Pavel prefers strong espresso, no milk",
-  "Backup ran successfully at 03:00",
+  "A Monday comes right after every Sunday",
+  "Water boils at 100 degrees Celsius at sea level",
+  "There are seven days in a week",
+  "The sun rises in the east and sets in the west",
+  "A triangle has three sides",
 ]
 
 async function main() {
