@@ -21,6 +21,13 @@ const EnvSchema = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   API_PORT: z.coerce.number().int().default(8787),
   MCP_PORT: z.coerce.number().int().default(3100),
+  // Bind address for the HTTP listeners. Bare-metal: "127.0.0.1".
+  // Docker: "0.0.0.0" (compose pins host-side exposure to 127.0.0.1).
+  API_HOST: z.string().default("127.0.0.1"),
+  MCP_HOST: z.string().default("127.0.0.1"),
+  // Where MCP/stdio clients reach the API. Docker compose sets this to
+  // http://api:8787 so the mcp container can resolve the api service.
+  BRAIN_API_URL: z.string().url().optional(),
 })
 
 export type Env = z.infer<typeof EnvSchema>

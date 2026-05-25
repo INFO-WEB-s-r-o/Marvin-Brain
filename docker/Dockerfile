@@ -9,7 +9,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # copy source + build files
-COPY tsconfig.json biome.json ./
+COPY tsconfig.json biome.json drizzle.config.ts ./
 COPY src ./src
 COPY drizzle ./drizzle
 COPY scripts ./scripts

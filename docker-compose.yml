@@ -26,10 +26,14 @@ services:
       LIGHTRAG_URL: http://lightrag:8000
       POSTGRES_HOST: postgres
       POSTGRES_USER: admin
+      API_HOST: 0.0.0.0
     depends_on:
       postgres: { condition: service_healthy }
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8787/health || exit 1"]
+      # use 127.0.0.1, not localhost: BusyBox wget tries ::1 first on Alpine
+      # and Bun's server only binds IPv4, so the IPv6 attempt errors and wget
+      # does not fall back.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8787/health || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -45,6 +49,8 @@ services:
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: admin
+      MCP_HOST: 0.0.0.0
+      BRAIN_API_URL: http://api:8787
     depends_on:
       api: { condition: service_healthy }
     restart: unless-stopped
