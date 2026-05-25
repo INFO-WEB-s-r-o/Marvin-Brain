@@ -26,6 +26,7 @@ services:
       LIGHTRAG_URL: http://lightrag:8000
       POSTGRES_HOST: postgres
       POSTGRES_USER: admin
+      API_HOST: 0.0.0.0
     depends_on:
       postgres: { condition: service_healthy }
     healthcheck:
@@ -45,6 +46,8 @@ services:
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: admin
+      MCP_HOST: 0.0.0.0
+      BRAIN_API_URL: http://api:8787
     depends_on:
       api: { condition: service_healthy }
     restart: unless-stopped

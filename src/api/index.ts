@@ -91,6 +91,6 @@ if (import.meta.main) {
     db,
     services: { thoughts, facts, recall },
   })
-  serve({ fetch: app.fetch, port: e.API_PORT, hostname: "127.0.0.1" })
-  console.log(JSON.stringify({ msg: "api listening", port: e.API_PORT }))
+  serve({ fetch: app.fetch, port: e.API_PORT, hostname: e.API_HOST })
+  console.log(JSON.stringify({ msg: "api listening", host: e.API_HOST, port: e.API_PORT }))
 }

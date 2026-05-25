@@ -39,7 +39,7 @@ if (import.meta.main) {
   const e = env()
 
   const server = buildMcpServer({
-    apiBaseUrl: `http://127.0.0.1:${e.API_PORT}`,
+    apiBaseUrl: e.BRAIN_API_URL ?? `http://127.0.0.1:${e.API_PORT}`,
     apiKey: e.BRAIN_API_KEY,
     port: e.MCP_PORT,
   })
@@ -65,6 +65,6 @@ if (import.meta.main) {
     return response
   })
 
-  serve({ fetch: app.fetch, port: e.MCP_PORT, hostname: "127.0.0.1" })
-  console.log(JSON.stringify({ msg: "mcp listening", port: e.MCP_PORT }))
+  serve({ fetch: app.fetch, port: e.MCP_PORT, hostname: e.MCP_HOST })
+  console.log(JSON.stringify({ msg: "mcp listening", host: e.MCP_HOST, port: e.MCP_PORT }))
 }

@@ -11,11 +11,13 @@ import { buildMcpServer } from "./index"
 // All diagnostics go to stderr.
 const e = env()
 
+const apiBaseUrl = e.BRAIN_API_URL ?? `http://127.0.0.1:${e.API_PORT}`
+
 const server = buildMcpServer({
-  apiBaseUrl: `http://127.0.0.1:${e.API_PORT}`,
+  apiBaseUrl,
   apiKey: e.BRAIN_API_KEY,
   port: e.MCP_PORT, // unused over stdio
 })
 
 await server.connect(new StdioServerTransport())
-console.error(JSON.stringify({ msg: "mcp stdio ready", api: e.API_PORT }))
+console.error(JSON.stringify({ msg: "mcp stdio ready", api: apiBaseUrl }))
